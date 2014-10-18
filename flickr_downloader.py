@@ -48,10 +48,27 @@ class PageParser(HTMLParser):
 	link = ''
 	next_link = ''
 	image_list = []
+	results = ''
+	results_found = False;
 
 	## Get link to next page with photos
+	# @return Next pake link
 	def getNextLink(self):
-		return self.next_link
+		tmp_link = self.next_link
+		self.next_link=''
+		return tmp_link
+
+	## Get number of found images
+	# @return Number of found images
+	def getResultsCount(self):
+		return self.results
+
+	## Data handler
+	# @param data Data between two tags
+	def handle_data(self, data):
+		if self.results_found:
+			self.results = re.sub(r'[^0-9]','', data)
+			self.results_found = False
 
 	## Start tag handler
 	# @param tag XML tag name
@@ -69,6 +86,12 @@ class PageParser(HTMLParser):
 				for attr in attrs:
 					if attr[0] == 'id' and attr[1] == 'GoodStuff':
 						self.good_stuff_found = True
+
+		# Search for a <td id="GoodStuff"> which contains the images
+		elif tag == 'div':
+			for attr in attrs:
+				if attr[0] == 'class' and attr[1] == 'Results':
+					self.results_found = True
 
 		# Already in a <td id="GoodStuff"> get url addresses for images and next page
 		elif self.good_stuff_found and tag == 'a':
@@ -205,6 +228,8 @@ class ImageDownloader:
 		# Get list of image page URLs
 		self.page_parser.feed(self.getHTML(self.url))
 
+		print 'Found ' + self.page_parser.getResultsCount() + ' images, downloading:'
+
 		# While not enough images were downloaded and there still are images to download
 		while self.image_count_requested > self.image_count_downloaded and not self.page_parser.imagesEmpty():
 			self.downloadImages()
@@ -213,7 +238,7 @@ class ImageDownloader:
 			if self.image_count_requested > self.image_count_downloaded:
 				self.page_parser.feed(self.getHTML('https://www.flickr.com/' + self.page_parser.getNextLink()))
 
-		print 'Donwloaded: ' + str(self.image_count_downloaded) + ' of ' + str(self.image_count_requested)
+		print 'Downloaded: ' + str(self.image_count_downloaded) + ' of ' + str(self.image_count_requested) + ' requested'
 
 # Parse arguments
 if len(sys.argv) != 3 or not isInteger(sys.argv[1]):
