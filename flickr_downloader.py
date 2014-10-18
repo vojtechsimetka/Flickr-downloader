@@ -176,12 +176,16 @@ class ImageDownloader:
 
 		# While the URL list is not empty and not enough images was downloaded
 		while not self.page_parser.imagesEmpty() and self.image_count_downloaded < self.image_count_requested:
-			self.image_count_downloaded+=1
 			url = self.getHTML('https://www.flickr.com' + self.page_parser.getNextImage())
 			self.image_parser.feed(url)
 
 			# Replaces found url ending in order to download original sizes
 			img_url = self.image_parser.getImageURL().replace('z.jpg', 'b.jpg')
+			if img_url.endswith('?zz=1'):
+				print str(self.image_count_downloaded+1) + ' Failed to download, continuing with next image'
+				continue
+
+			self.image_count_downloaded+=1
 			print str(self.image_count_downloaded) + ' ' + img_url
 
 			# Downloads the image and saves it
