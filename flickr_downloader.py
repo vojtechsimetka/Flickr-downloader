@@ -12,8 +12,6 @@ import re
 from HTMLParser import HTMLParser
 from htmlentitydefs import name2codepoint
 
-image_tag = 'prague';
-
 ## Remove non ASCII characters from string
 # @param text String possibly containing nonASCII characters
 # @return Same string with nonASCII characters replaced by space
